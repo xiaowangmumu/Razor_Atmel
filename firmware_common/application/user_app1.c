@@ -94,7 +94,7 @@ void UserApp1Initialize(void)
  LedOff(CYAN);
  LedOff(GREEN);
  LedOff(YELLOW);
- LedOff(ORANGE);
+
  
  PWMAudioSetFrequency(BUZZER1,500);
   /* If good initialization, set state to Idle */
