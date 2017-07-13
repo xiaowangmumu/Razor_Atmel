@@ -87,7 +87,16 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
+ LedOff(RED);
+ LedOff(WHITE);
+ LedOff(PURPLE);
+ LedOff(BLUE);
+ LedOff(CYAN);
+ LedOff(GREEN);
+ LedOff(YELLOW);
+ LedOff(ORANGE);
  
+ PWMAudioSetFrequency(BUZZER1,500);
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -136,6 +145,102 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
+  static u8 u8RealPassword[]={1,2,3,1,2,3};//real password
+  static u8 u8UserPassword[]={0,0,0,0,0,0};//user put password
+  static u8 u8Index=0;//mark the password number
+  static u8 u8Confirm=0;//confirm
+  static u16 u16Counter=0;//control redled's on time
+  static bool bPressed=FALSE;
+  static bool bIsOk=TRUE;
+  
+  u8 u8TempIndex;
+  
+  if(WasButtonPressed(BUTTON3))
+  {
+		ButtonAcknowledge(BUTTON3);	
+		u8Confirm++;
+  }
+  
+  if(u8Confirm==2)
+  {
+		for(u8TempIndex=0;u8TempIndex<6;u8TempIndex++)
+		{
+			  if(u8RealPassword[u8TempIndex]!=
+				 u8UserPassword[u8TempIndex])
+			  {
+					bIsOk=FALSE;
+					break;
+			  }
+		}
+
+		if(bIsOk)
+		{
+			  LedOn(WHITE);
+			  LedOff(PURPLE);
+		}
+		else
+		{
+				LedOff(WHITE);
+				LedOn(PURPLE);
+		}
+		
+		LedOff(BLUE);
+		u8Confirm=0;
+		u8Index=0;
+  }
+  
+  if(u8Confirm==1)
+  {
+		LedOn(BLUE);
+		LedOff(WHITE);
+		LedOff(PURPLE);
+		
+		if(u8Index<=6)
+		{
+			  if(WasButtonPressed(BUTTON0))
+			  {
+					ButtonAcknowledge(BUTTON0);
+					LedOn(RED);
+					PWMAudioOn(BUZZER1);
+					bPressed=TRUE;
+					u8UserPassword[u8Index]=1;
+					u8Index++;
+			  }
+			  
+			  if(WasButtonPressed(BUTTON1))
+			  {
+					ButtonAcknowledge(BUTTON1);
+					LedOn(RED);
+					PWMAudioOn(BUZZER1);
+					bPressed=TRUE;
+					u8UserPassword[u8Index]=2;
+					u8Index++;
+			  }
+		  
+			  if(WasButtonPressed(BUTTON2))
+			  {
+					ButtonAcknowledge(BUTTON2);
+					LedOn(RED);
+					PWMAudioOn(BUZZER1);
+					bPressed=TRUE;
+					u8UserPassword[u8Index]=3;
+					u8Index++;
+			  }
+		  
+			  if(bPressed==TRUE)
+			  {
+					u16Counter++;
+					
+					if(u16Counter==100)
+					{
+						  u16Counter=0;
+						  LedOff(RED);
+						  PWMAudioOff(BUZZER1);
+						  bPressed=FALSE;
+				    }
+			  }	
+		}
+  }
 
 } /* end UserApp1SM_Idle() */
     
