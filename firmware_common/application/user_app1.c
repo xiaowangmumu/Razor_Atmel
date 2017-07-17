@@ -87,16 +87,15 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
- LedOff(RED);
- LedOff(WHITE);
- LedOff(PURPLE);
- LedOff(BLUE);
- LedOff(CYAN);
- LedOff(GREEN);
- LedOff(YELLOW);
-
+  static u8 au8Message[] = "Hello world!Hello world!Hello world!";
+  static u8 au8Message1[] = "Hello HouLin!";
+  static u8 UserApp_CursorPosition=LINE1_START_ADDR;
  
- PWMAudioSetFrequency(BUZZER1,500);
+  LCDMessage(LINE1_START_ADDR, au8Message);
+ 
+  LCDMessage(LINE2_START_ADDR, au8Message1);
+  LCDCommand(LCD_HOME_CMD);
+  
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -145,103 +144,88 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-  static u8 u8RealPassword[]={1,2,3,1,2,3};//real password
-  static u8 u8UserPassword[]={0,0,0,0,0,0};//user put password
-  static u8 u8Index=0;//mark the password number
-  static u8 u8Confirm=0;//confirm
-  static u16 u16Counter=0;//control redled's on time
-  static bool bPressed=FALSE;
-  static bool bIsOk=TRUE;
+  static bool bCursorOn = FALSE;
+  static u8 au8Message[] = "Hello world!Hello world!Hello world!";
+  static u8 u8Timer=0;
   
-  u8 u8TempIndex;
+  static u8 UserApp_CursorPosition=LINE1_START_ADDR;
   
-  if(WasButtonPressed(BUTTON3))
+
+  if(WasButtonPressed(BUTTON0))
   {
-		ButtonAcknowledge(BUTTON3);	
-		u8Confirm++;
+    ButtonAcknowledge(BUTTON0);
+    
+    if(bCursorOn)
+    {
+      /* Cursor is on, so turn it off */
+      LCDCommand(LCD_DISPLAY_CMD | LCD_DISPLAY_ON);
+      bCursorOn = FALSE;
+    }
+    else
+    {
+      /* Cursor is off, so turn it on */
+      LCDCommand(LCD_DISPLAY_CMD | LCD_DISPLAY_ON | LCD_DISPLAY_CURSOR | LCD_DISPLAY_BLINK);
+      bCursorOn = TRUE;
+   }
   }
   
-  if(u8Confirm==2)
+  if(WasButtonPressed(BUTTON1))
   {
-		for(u8TempIndex=0;u8TempIndex<6;u8TempIndex++)
+    	ButtonAcknowledge(BUTTON1);
+    
+		/* Handle the two special cases or just the regular case */
+		if(UserApp_CursorPosition == LINE1_END_ADDR)
 		{
-			  if(u8RealPassword[u8TempIndex]!=
-				 u8UserPassword[u8TempIndex])
-			  {
-					bIsOk=FALSE;
-					break;
-			  }
+			UserApp_CursorPosition = LINE2_START_ADDR;
 		}
 
-		if(bIsOk)
-		{
-			  LedOn(WHITE);
-			  LedOff(PURPLE);
-		}
-		else
-		{
-				LedOff(WHITE);
-				LedOn(PURPLE);
-		}
+		else 
+			if (UserApp_CursorPosition == LINE2_END_ADDR)
+			{
+				UserApp_CursorPosition = LINE1_START_ADDR;
+			}
+			
+			/* Otherwise just increment one space */
+			else
+			{
+				UserApp_CursorPosition++;
+			}
 		
-		LedOff(BLUE);
-		u8Confirm=0;
-		u8Index=0;
-  }
+		/* New position is set, so update */
+		LCDCommand(LCD_ADDRESS_CMD | UserApp_CursorPosition);
+  } /* end BUTTON1*/
+ 
   
-  if(u8Confirm==1)
+  if(WasButtonPressed(BUTTON2))
   {
-		LedOn(BLUE);
-		LedOff(WHITE);
-		LedOff(PURPLE);
-		
-		if(u8Index<=6)
+    	ButtonAcknowledge(BUTTON2);
+    
+    /* Handle the two special cases or just the regular case */
+		if(UserApp_CursorPosition == LINE1_START_ADDR)
 		{
-			  if(WasButtonPressed(BUTTON0))
-			  {
-					ButtonAcknowledge(BUTTON0);
-					LedOn(RED);
-					PWMAudioOn(BUZZER1);
-					bPressed=TRUE;
-					u8UserPassword[u8Index]=1;
-					u8Index++;
-			  }
-			  
-			  if(WasButtonPressed(BUTTON1))
-			  {
-					ButtonAcknowledge(BUTTON1);
-					LedOn(RED);
-					PWMAudioOn(BUZZER1);
-					bPressed=TRUE;
-					u8UserPassword[u8Index]=2;
-					u8Index++;
-			  }
-		  
-			  if(WasButtonPressed(BUTTON2))
-			  {
-					ButtonAcknowledge(BUTTON2);
-					LedOn(RED);
-					PWMAudioOn(BUZZER1);
-					bPressed=TRUE;
-					u8UserPassword[u8Index]=3;
-					u8Index++;
-			  }
-		  
-			  if(bPressed==TRUE)
-			  {
-					u16Counter++;
-					
-					if(u16Counter==100)
-					{
-						  u16Counter=0;
-						  LedOff(RED);
-						  PWMAudioOff(BUZZER1);
-						  bPressed=FALSE;
-				    }
-			  }	
+		  	UserApp_CursorPosition = LINE2_END_ADDR;
 		}
-  }
 
+		else 
+		  	if (UserApp_CursorPosition == LINE2_START_ADDR)
+			{
+			  	UserApp_CursorPosition = LINE1_END_ADDR;
+			}
+			
+			/* Otherwise just decrement one space */
+			else
+			{
+			  	UserApp_CursorPosition--;
+			}
+		
+		/* New position is set, so update */
+		LCDCommand(LCD_ADDRESS_CMD | UserApp_CursorPosition);
+ } /* end BUTTON2 */
+  
+		
+			
+
+		
 } /* end UserApp1SM_Idle() */
     
 
