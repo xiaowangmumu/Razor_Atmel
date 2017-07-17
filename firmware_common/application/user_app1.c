@@ -145,7 +145,7 @@ State Machine Function Definitions
 static void UserApp1SM_Idle(void)
 {
   static bool bCursorOn = FALSE;
-  static u8 au8Message[] = "Hello world!Hello world!Hello world!";
+  static u8 au8Message[] = "Hello world!";
   static u8 u8Timer=0;
   
   static u8 UserApp_CursorPosition=LINE1_START_ADDR;
