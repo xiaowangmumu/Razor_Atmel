@@ -59,7 +59,7 @@ Variable names shall start with "UserApp1_" and be declared as static.
 ***********************************************************************************************************************/
 static fnCode_type UserApp1_StateMachine;            /* The state machine function pointer */
 //static u32 UserApp1_u32Timeout;                      /* Timeout counter used across states */
-
+ static u8 UserApp_CursorPosition;
 
 /**********************************************************************************************************************
 Function Definitions
@@ -87,15 +87,19 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
-  static u8 au8Message[] = "Hello world!Hello world!Hello world!";
-  static u8 au8Message1[] = "Hello HouLin!";
-  static u8 UserApp_CursorPosition=LINE1_START_ADDR;
  
-  LCDMessage(LINE1_START_ADDR, au8Message);
- 
-  LCDMessage(LINE2_START_ADDR, au8Message1);
-  LCDCommand(LCD_HOME_CMD);
+  UserApp_CursorPosition = LINE1_END_ADDR;
+  LCDCommand(LCD_CLEAR_CMD);
+  LedOff(RED);
+  LedOff(BLUE);
+  LedOff(YELLOW);
+  LedOff(PURPLE);
+  PWMAudioSetFrequency(BUZZER1,500);
   
+  
+ 
+ 
+ 
   /* If good initialization, set state to Idle */
   if( 1 )
   {
@@ -144,88 +148,54 @@ State Machine Function Definitions
 /* Wait for ??? */
 static void UserApp1SM_Idle(void)
 {
-  static bool bCursorOn = FALSE;
-  static u8 au8Message[] = "Hello world!";
-  static u8 u8Timer=0;
+  static u8 au8Message[] = "HouLin";
+  static u8 au8Message1[] = "Hellow!";
+  static u16 u16Timer=0;
+  static bool bButtonPressed=FALSE;
   
-  static u8 UserApp_CursorPosition=LINE1_START_ADDR;
+  u16Timer++;
   
-
-  if(WasButtonPressed(BUTTON0))
+  if(u16Timer==500)
   {
-    ButtonAcknowledge(BUTTON0);
-    
-    if(bCursorOn)
-    {
-      /* Cursor is on, so turn it off */
-      LCDCommand(LCD_DISPLAY_CMD | LCD_DISPLAY_ON);
-      bCursorOn = FALSE;
-    }
-    else
-    {
-      /* Cursor is off, so turn it on */
-      LCDCommand(LCD_DISPLAY_CMD | LCD_DISPLAY_ON | LCD_DISPLAY_CURSOR | LCD_DISPLAY_BLINK);
-      bCursorOn = TRUE;
-   }
+		
+		if(UserApp_CursorPosition==LINE1_START_ADDR)
+		{
+		  	UserApp_CursorPosition=LINE1_END_ADDR;
+			LedOn(RED);
+			LedOff(BLUE);
+		}
+		else
+		{
+		  	LCDClearChars(LINE1_START_ADDR, 6);
+			LedOff(RED);
+			LedOn(BLUE);
+		}
+		UserApp_CursorPosition--;
+		LCDMessage(UserApp_CursorPosition, au8Message);
+		LCDMessage(LINE2_START_ADDR+6, au8Message1);
+		LCDClearChars(UserApp_CursorPosition+6,5);
+		u16Timer=0; 
   }
-  
-  if(WasButtonPressed(BUTTON1))
+  LedBlink(PURPLE,LED_2HZ);
+
+  if(WasButtonPressed(BUTTON3))
   {
-    	ButtonAcknowledge(BUTTON1);
-    
-		/* Handle the two special cases or just the regular case */
-		if(UserApp_CursorPosition == LINE1_END_ADDR)
+	  	ButtonAcknowledge(BUTTON3);
+		
+		if(bButtonPressed)
+	    {
+			LedOn(YELLOW);
+			PWMAudioOn(BUZZER1);
+			bButtonPressed=FALSE;
+		}
+		else 
 		{
-			UserApp_CursorPosition = LINE2_START_ADDR;
+			LedOff(YELLOW);	
+			PWMAudioOff(BUZZER1);
+			bButtonPressed=TRUE;
 		}
 
-		else 
-			if (UserApp_CursorPosition == LINE2_END_ADDR)
-			{
-				UserApp_CursorPosition = LINE1_START_ADDR;
-			}
-			
-			/* Otherwise just increment one space */
-			else
-			{
-				UserApp_CursorPosition++;
-			}
-		
-		/* New position is set, so update */
-		LCDCommand(LCD_ADDRESS_CMD | UserApp_CursorPosition);
-  } /* end BUTTON1*/
- 
-  
-  if(WasButtonPressed(BUTTON2))
-  {
-    	ButtonAcknowledge(BUTTON2);
-    
-    /* Handle the two special cases or just the regular case */
-		if(UserApp_CursorPosition == LINE1_START_ADDR)
-		{
-		  	UserApp_CursorPosition = LINE2_END_ADDR;
-		}
-
-		else 
-		  	if (UserApp_CursorPosition == LINE2_START_ADDR)
-			{
-			  	UserApp_CursorPosition = LINE1_END_ADDR;
-			}
-			
-			/* Otherwise just decrement one space */
-			else
-			{
-			  	UserApp_CursorPosition--;
-			}
-		
-		/* New position is set, so update */
-		LCDCommand(LCD_ADDRESS_CMD | UserApp_CursorPosition);
- } /* end BUTTON2 */
-  
-		
-			
-
-		
+  }
 } /* end UserApp1SM_Idle() */
     
 
