@@ -57,7 +57,8 @@ State Machine Declarations
 static void UserApp1SM_Idle(void);    
 
 static void UserApp1SM_Error(void);         
-
+static void UserApp1SM_state1(void);
+static void UserApp1SM_state2(void);
 
 #endif /* __USER_APP1_H */
 

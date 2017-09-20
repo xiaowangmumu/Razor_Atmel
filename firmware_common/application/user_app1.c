@@ -87,6 +87,19 @@ Promises:
 */
 void UserApp1Initialize(void)
 {
+  LedOff(WHITE);
+  LedOff(PURPLE);
+  LedOff(BLUE);
+  LedOff(CYAN);
+  LedOff(GREEN);
+  LedOff(YELLOW);
+  LedOff(ORANGE);
+  LedOff(RED);
+ 
+  LedOn(LCD_GREEN);
+  LedOn(LCD_BLUE);
+  LedOn(LCD_RED);
+  PWMAudioOff(BUZZER1);
  
   /* If good initialization, set state to Idle */
   if( 1 )
@@ -134,9 +147,124 @@ State Machine Function Definitions
 
 /*-------------------------------------------------------------------------------------------------------------------*/
 /* Wait for ??? */
+static void  UserAppSM_state1(void)
+{
+  static u8 au8Massage1[]="STATE1";
+  
+  DebugPrintf("Entering state 1");
+  DebugLineFeed();
+  
+  LCDMessage(LINE1_START_ADDR, au8Massage1);
+  LCDClearChars(LINE1_START_ADDR+6, 14);
+  LedOn(WHITE);
+  LedOn(PURPLE);
+  LedOn(BLUE);
+  LedOn(CYAN);
+  LedOff(GREEN);
+  LedOff(YELLOW);
+  LedOff(ORANGE);
+  LedOff(RED);
+  
+  LedOn(LCD_RED);
+  LedOn(LCD_BLUE);
+  LedOff(LCD_GREEN);
+  
+  PWMAudioOff(BUZZER1);
+  
+}
+
+static void  UserAppSM_state2(void)
+{
+  static u8 au8Massage2[]="STATE2";
+  
+  DebugPrintf("Entering state 2");
+  DebugLineFeed();
+  
+  LCDMessage(LINE1_START_ADDR , au8Massage2);
+  LCDClearChars(LINE1_START_ADDR+6, 14);
+  
+  LedOff(WHITE);
+  LedOff(PURPLE);
+  LedOff(BLUE);
+  LedOff(CYAN);
+  
+  
+  LedBlink(GREEN, LED_1HZ);
+  LedBlink(YELLOW, LED_2HZ);
+  LedBlink(ORANGE, LED_4HZ);
+  LedBlink(RED, LED_8HZ);
+  
+  LedOn(LCD_RED);
+  LedOff(LCD_BLUE);
+  LedPWM(LCD_GREEN,LED_PWM_20);
+}
 static void UserApp1SM_Idle(void)
 {
+  static u8 au8Enter[2];
+  static u8 u32Counter=0;
+  static bool bIsOK=FALSE;
+  static u8 u8KeyNumber=0;
+  
 
+  if(DebugScanf(au8Enter))
+  {
+	if(au8Enter[0]=='1')
+	{
+	  u8KeyNumber=1;
+	  DebugLineFeed();
+	}
+	
+	if(au8Enter[0]=='2')
+	{
+	  u8KeyNumber=2;
+	  DebugLineFeed();
+	}
+  }
+  
+	
+  
+  if(WasButtonPressed(BUTTON1))
+  {
+	ButtonAcknowledge(BUTTON1);
+	u8KeyNumber=1;
+  }
+  
+  if(WasButtonPressed(BUTTON2))
+  {
+	ButtonAcknowledge(BUTTON2);
+	u8KeyNumber=2;
+  }
+  if(u8KeyNumber==1)
+  {
+	UserAppSM_state1();
+	u8KeyNumber=0;
+	bIsOK=FALSE;
+  }
+  if(u8KeyNumber==2)
+  {
+	UserAppSM_state2();
+	u8KeyNumber=0;
+	bIsOK=TRUE;
+  }
+	 
+  if(bIsOK)
+  {
+	u32Counter++; 
+	if(u32Counter<=100)
+	{
+	  PWMAudioSetFrequency(BUZZER1,200);
+	  PWMAudioOn(BUZZER1);
+	}
+	else
+	{
+	  PWMAudioOff(BUZZER1);
+	  
+	  if(u32Counter==1000)
+	  {
+		u32Counter=0;
+	  }
+	}
+  }
 } /* end UserApp1SM_Idle() */
     
 
